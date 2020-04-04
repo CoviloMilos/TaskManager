@@ -6,7 +6,7 @@ const {mongoose} = require('./db/mongoose');
 const bodyParser = require('body-parser');
 
 // Load in the mongoose models
-const { List, Task } = require('./db/models');
+const { List, Task, User } = require('./db/models');
 
 // Load middleware
 app.use(bodyParser.json());
@@ -14,7 +14,9 @@ app.use(bodyParser.json());
 // CORS Headers middleware
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
     next();
 });
 
@@ -131,7 +133,7 @@ app.patch('/lists/:listId/tasks/:taskId', (req, res) => {
     }, {
         $set: req.body
     }).then(() => {
-        res.sendStatus(200);
+        res.send({message: 'Updated successfully!'})
     });
 });
 
@@ -148,6 +150,64 @@ app.delete('/lists/:listId/tasks/:taskId', (req, res) => {
         res.send(removedTaskDoc);
     });
 });
+
+/* USER ROUTES */ 
+
+/**
+ * POST /users
+ * Purpose: Sign up
+ */
+app.post('/users', (req, res) => {
+    let body = req.body;
+    let newUser = new User(body);
+
+    newUser.save().then(() => {
+        return newUser.createSession();
+    }).then((refreshToken) => {
+        // Session created successfully - refreshToken returned
+        // generate an access auth token for the user
+        
+        return newUser.generateAccessAuthToken().then((accessToken) => {
+            return {accessToken, refreshToken}
+        });
+    }).then((authTokens) => {
+        res 
+            .header('x-refresh-token', authTokens.refreshToken)
+            .header('x-access-token', authTokens.accessToken)
+            .send(newUser);
+    }).catch((e) => {
+        res.status(400).send(e);
+    })
+});
+
+/**
+ * POST /users/login
+ * Purpose: Login
+ */
+app.post('/users/login', (req, res) => {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    User.findByCredentials(email, password).then((user) => {
+        return user.createSession().then((refreshToken) => {
+            // Session created successfully - refreshToken returned
+            // now we generate an access auth token for the user
+
+            return user.generateAccessAuthToken().then((accessToken) => {
+                // access auth token generated successfully, return an object containing the auth tokens
+                return {accessToken, refreshToken}
+            });
+        }).then((authTokens) => {
+            res 
+                .header('x-refresh-token', authToken.refreshToken)
+                .header('x-access-token', authToken.accessToken)
+                .send(newUser);
+        }).catch((e) => {
+            res.status(400).send(e);
+        })
+    })
+});
+
 
 app.listen(3000, () => {
     console.log("Server is listening on port 3000");
