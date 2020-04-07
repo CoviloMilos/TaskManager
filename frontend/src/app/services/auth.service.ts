@@ -1,7 +1,7 @@
 import { Router } from '@angular/router';
 import { WebRequestService } from './web-request.service';
 import { Injectable } from '@angular/core';
-import { shareReplay, tap } from 'rxjs/operators';
+import { shareReplay, tap, share } from 'rxjs/operators';
 import { HttpResponse, HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -18,6 +18,15 @@ export class AuthService {
       tap((res: HttpResponse<any>) => {
         this.setSession(res.body._id, res.headers.get('x-access-token'), res.headers.get('x-refresh-token'));
         console.log('Logged in');
+      })
+    );
+  }
+
+  signup(email: string, password: string) {
+    return this.webService.signup(email, password).pipe(
+      shareReplay(),
+      tap((res: HttpResponse<any>) => {
+        console.log('Signed up successfully');
       })
     );
   }
