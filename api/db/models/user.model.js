@@ -160,7 +160,7 @@ UserSchema.pre('save', function (next) {
         next();
     }
 });
-
+ 
 
 /* HELPER METHODS */
 let saveSessionToDatabase = (user, refreshToken) => {
@@ -176,7 +176,7 @@ let saveSessionToDatabase = (user, refreshToken) => {
         }).catch((e) => {
             reject(e);
         });
-    })
+    }) 
 }
 
 let generateRefreshTokenExpiryTime = () => {

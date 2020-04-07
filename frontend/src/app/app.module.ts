@@ -1,3 +1,4 @@
+import { WebReqInterceptor } from './services/web-req.interceptor';
 import { WebRequestService } from './services/web-request.service';
 import { TaskService } from './services/task.service';
 import { BrowserModule } from '@angular/platform-browser';
@@ -6,7 +7,7 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TaskViewComponent } from './pages/task-view/task-view.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NewListComponent } from './pages/new-list/new-list.component';
 import { NewTaskComponent } from './pages/new-task/new-task.component';
 import { LoginPageComponent } from './pages/login-page/login-page.component';
@@ -26,7 +27,8 @@ import { LoginPageComponent } from './pages/login-page/login-page.component';
   ],
   providers: [
     TaskService,
-    WebRequestService
+    WebRequestService,
+    { provide: HTTP_INTERCEPTORS, useClass: WebReqInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })
